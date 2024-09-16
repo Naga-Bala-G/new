@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        form {
+            background-color: #fff;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
+        }
+
+        label {
+            font-size: 1rem;
+            color: #333;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        input {
+            width: 100%;
+            padding: 0.75rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        input:focus {
+            border-color: #4CAF50;
+            box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
+            outline: none;
+        }
+
+        button {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: #4CAF50;
+            color: white;
+            font-size: 1rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .error {
+            color: red;
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        .form-container {
+            text-align: center;
+        }
+
+        @media (max-width: 600px) {
+            form {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+
+    <script>
+        async function login(event) {
+            event.preventDefault(); // Prevent form from submitting the traditional way
+            
+            // Clear any previous error messages
+            const errorDiv = document.getElementById('error-message');
+            errorDiv.textContent = ''; 
+
+            // Get values from the input fields
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            // Perform the login by sending a POST request to the login API
+            const response = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ username, password }) // Send the username and password as JSON
+            });
+
+            // Parse the response as JSON
+            const data = await response.json();
+
+            if (response.ok) {
+                // If login is successful, store tokens in localStorage
+                localStorage.setItem('access_token', data.access_token);
+                localStorage.setItem('refresh_token', data.refresh_token);
+
+                // Check user roles and redirect to the appropriate dashboard based on role
+                if (data.roles.includes('executive')) {
+                    window.location.href = '/dashboard/executive';
+                } else if (data.roles.includes('Manager')) {
+                    window.location.href = '/dashboard/manager';
+                } else if (data.roles.includes('Employee')) {
+                    window.location.href = '/dashboard/employee';
+                } else {
+                    errorDiv.textContent = 'No appropriate role found';
+                }
+            } else {
+                // If login fails, display an error message on the page
+                errorDiv.textContent = 'Username or password incorrect. Please try again.';
+            }
+        }
+    </script>
+</head>
+<body>
+    <div class="form-container">
+        <h1>Login</h1>
+        <form onsubmit="login(event)">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required>
+
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+
+            <button type="submit">Login</button>
+        </form>
+        <div id="error-message" class="error"></div>
+    </div>
+</body>
+</html>
